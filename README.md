@@ -14,10 +14,10 @@ The plugin uses CFR 0.152 decompiler as a library, so it does not need any extra
 
 Download and resources
 ----------------------
-TO BE CHANGED:
+TO BE UPDATED...
 - Download the [latest release in this project](hhttps://github.com/moisescastellano/javadecompiler-tcplugin/blob/main/releases)
-- [Plugin page at totalcmd.net](http://totalcmd.net/plugring/diskdircrc.html)
-- [Thread for discussing this plugin](https://www.ghisler.ch/board/viewtopic.php?t=75748) at the TC forum
+- [Plugin page at totalcmd.net](http://totalcmd.net/)
+- [Thread for discussing this plugin](https://www.ghisler.ch/) at the TC forum
 - This is a work in progress, you can help with [things to do](https://github.com/moisescastellano/diskdircrc-tcplugin/blob/main/to-do.md)
 
 Java plugin
@@ -29,9 +29,6 @@ This plugin is based on the [Java plugin interface](https://moisescastellano.git
 
 Known bugs and things to-do
 ----------------------
-Dates are shown incorrectly (e.g. year shown as 2098). This is an error not in my code but in the java plugin library. Soon to be corrected.
-
-TO BE CHANGED:
 Refer to [things to do](https://moisescastellano.github.io/tcmd-java-plugin/to-do.md) for other work in progress.
 
 Contact
