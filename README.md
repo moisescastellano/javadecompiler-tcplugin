@@ -19,9 +19,10 @@ The plugin uses CFR 0.152 decompiler as a library, so it does not need any extra
 Download and resources
 ----------------------
 TO BE UPDATED...
+- [Github page](https://github.com/moisescastellano/javadecompiler-tcplugin)
 - Download the [latest release in this project](https://github.com/moisescastellano/javadecompiler-tcplugin/blob/main/releases)
-- [Plugin page at totalcmd.net](http://totalcmd.net/)
-- [Thread for discussing this plugin](https://www.ghisler.ch/) at the TC forum
+- [Plugin page at totalcmd.net](http://totalcmd.net/plugring/java_decompiler.html)
+- [Thread for discussing this plugin](https://www.ghisler.ch/board/viewtopic.php?t=75793) at the TC forum
 - This is a work in progress, you can help with [things to do](https://moisescastellano.github.io/javadecompiler-tcplugin/to-do)
 
 Java plugin
@@ -31,9 +32,6 @@ Because it uses lambda expressions, it needs **at least Java 8**. It has been te
 
 This plugin is based on the [Java plugin interface](https://moisescastellano.github.io/tcmd-java-plugin)
 
-Known bugs and things to-do
-----------------------
-Refer to [things to do](https://moisescastellano.github.io/tcmd-java-plugin/to-do.md) for other work in progress.
 
 Contact
 ----------------------
