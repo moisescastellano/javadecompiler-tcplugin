@@ -10,15 +10,19 @@ It is not, .class files do NOT contain other files. However this plugin "hacks" 
  - a list of directories representing all the methods, fields, constructors, member classes and interfaces of the class. This way you can have a very quick view of the class structure
  - a couple more directories show the system properties and environment variables (this info is not directly related to the class, but it could be useful)
  
+ In the screenshot, on the left panel we have entered to a .class file. The sub-directories contain members of the class. Decompiled class is viewed on the right panel.
+ 
+ ![JavaDecompiler screenshot](https://github.com/moisescastellano/javadecompiler-tcplugin/raw/main/screenshots/JavaDecompiler.png)
+ 
 The plugin uses CFR 0.152 decompiler as a library, so it does not need any extra executables or processes.
 
 Download and resources
 ----------------------
 TO BE UPDATED...
-- Download the [latest release in this project](hhttps://github.com/moisescastellano/javadecompiler-tcplugin/blob/main/releases)
+- Download the [latest release in this project](https://github.com/moisescastellano/javadecompiler-tcplugin/blob/main/releases)
 - [Plugin page at totalcmd.net](http://totalcmd.net/)
 - [Thread for discussing this plugin](https://www.ghisler.ch/) at the TC forum
-- This is a work in progress, you can help with [things to do](https://github.com/moisescastellano/diskdircrc-tcplugin/blob/main/to-do.md)
+- This is a work in progress, you can help with [things to do](https://moisescastellano.github.io/javadecompiler-tcplugin/to-do)
 
 Java plugin
 ----------------------
