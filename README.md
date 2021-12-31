@@ -18,10 +18,10 @@ The plugin uses CFR 0.152 decompiler as a library, so it does not need any extra
 
 Download and resources
 ----------------------
-TO BE UPDATED...
-- [Github page](https://github.com/moisescastellano/javadecompiler-tcplugin)
 - Download the [latest release in this project](https://github.com/moisescastellano/javadecompiler-tcplugin/blob/main/releases)
 - [Plugin page at totalcmd.net](http://totalcmd.net/plugring/java_decompiler.html)
+- JavaDecompiler [Github page](https://moisescastellano.github.io/javadecompiler-tcplugin/)
+- JavaDecompiler [Github project](https://github.com/moisescastellano/javadecompiler-tcplugin)
 - [Thread for discussing this plugin](https://www.ghisler.ch/board/viewtopic.php?t=75793) at the TC forum
 - This is a work in progress, you can help with [things to do](https://moisescastellano.github.io/javadecompiler-tcplugin/to-do)
 
