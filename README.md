@@ -41,11 +41,15 @@ JVM_HOME=c:\Program Files\Java\jre1.8.0_311
 
 Note 2: [**OpenJDK versions have been reported to fail**](https://github.com/moisescastellano/tcmd-java-plugin/issues/2) when the plugin tries to start the JVM. By now, recommendation is to install an Oracle (Sun) JDK/JRE version. Java plugin interface and derived plugins like [JavaDecompiler](https://moisescastellano.github.io/javadecompiler-tcplugin/) and [DiskDirCrc](https://moisescastellano.github.io/diskdircrc-tcplugin/) have been tested on **Oracle (Sun) JRE 1.8**  (jre-8u311-windows-x64.exe).
 
-
+Issues and things to-do
+----------------------
+This is a work in progress. **Help wanted!** - in particular with Visual C++ issues.
+ - Refer to [things to do](https://github.com/moisescastellano/tcmd-java-plugin/blob/main/to-do.md) for work in progress.
+ - Check also the [issues page](https://github.com/moisescastellano/javadecompiler-tcplugin/issues).
+ - Java Plugin Interface's [issues page](https://github.com/moisescastellano/tcmd-java-plugin/issues).
 
 Contact
 ----------------------
-Author: Moises Castellano 2021
 
 If you have any comment, suggestion or problem regarding this java plugin,
 you contact me at:
@@ -53,7 +57,7 @@ you contact me at:
  
  - [github project issues page](https://github.com/moisescastellano/javadecompiler-tcplugin/issues)
 
-Please specify the java plugin and the JRE version you are using.
+Please detail the specific version of: Java plugin interface, Total Commander and JRE that you are using.
 
 Disclaimer
 ----------------------
