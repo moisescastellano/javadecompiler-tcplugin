@@ -2,6 +2,10 @@
 JavaDecompiler plugin - Things To do
 =====================================
 
+This is a work in progress. **Help wanted!** - in particular with Visual C++ issues. See contact below.
+
+Check also [this project's issues page](https://github.com/moisescastellano/javadecompiler-tcplugin/issues) and Java Plugin Interface's [issues page](https://github.com/moisescastellano/tcmd-java-plugin/issues).
+
 Known bugs
 ----------
 Dates are shown incorrectly (e.g. year shown as 2098). I think this is an error in the original java plugin, to be corrected.
