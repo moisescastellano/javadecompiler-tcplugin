@@ -1,4 +1,4 @@
-JavaDecompiler 1.0, a [Total Commander](https://www.ghisler.com/) plugin
+JavaDecompiler 1.1, a [Total Commander](https://www.ghisler.com/) plugin
 ====================================
 
 This plugin allows Total Commander to both **decompile** and **navigate** java *.class* files. It is a packer plugin, meaning you can "enter" these files as archives. 
