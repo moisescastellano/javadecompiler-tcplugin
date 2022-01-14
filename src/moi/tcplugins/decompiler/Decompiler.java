@@ -17,6 +17,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -24,8 +26,6 @@ import org.benf.cfr.reader.api.CfrDriver;
 import org.benf.cfr.reader.api.OutputSinkFactory;
 import org.benf.cfr.reader.api.SinkReturns;
 import plugins.wcx.HeaderData;
-import plugins.wcx.OpenArchiveData;
-import plugins.wcx.WCXPluginAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,49 +34,63 @@ import org.slf4j.LoggerFactory;
  * https://github.com/moisescastellano/tcmd-java-plugin
  */
 
-public class Decompiler extends WCXPluginAdapter {
+public class Decompiler extends ItemsPlugin {
 	
-	static final Logger log = LoggerFactory.getLogger(Decompiler.class);
-
-	private enum ItemType {
-		JAVA, THROWABLE, PROPERTIES, ENVIRONMENT
+	final static Logger log = LoggerFactory.getLogger(Decompiler.class);
+	
+	public Decompiler() {
+		setItems();
 	}
-	
-	private enum ItemEnum {
-		JAVA_FILE(ItemType.JAVA), 
-		PROPERTIES_DIR(ItemType.PROPERTIES), PROPERTIES_FILE(ItemType.PROPERTIES),
-		ENVIRONMENT_DIR(ItemType.ENVIRONMENT), ENVIRONMENT_FILE(ItemType.ENVIRONMENT), 
-		THROWABLE(ItemType.THROWABLE), 
-		PACKAGE(ItemType.JAVA), CLASS_ELEMENTS(ItemType.JAVA), 
-		FINISH(null);
+
+	protected enum ItemEnum {
+		JAVA_FILE(false), PROPERTIES_DIR(true), PROPERTIES_FILE(false),	ENVIRONMENT_DIR(true), ENVIRONMENT_FILE(false), 
+		THROWABLE(true), PACKAGE(false), CLASS_ELEMENTS(true), FINISH(false);
 		
 		private static ItemEnum[] vals = values();
-		private ItemType type;
-		private ItemEnum(ItemType type) {
-			this.type = type;
+
+		BiPredicate<CatalogInfo, HeaderData> getter; // returns whether getting the item was successful
+		BiFunction<CatalogInfo, ItemEnum, ItemEnum>  nextIfSuccess; // returns the next element if getter was sucessful
+		SaverFunction saver; // saves the item
+		
+		private ItemEnum(boolean multiple) {
+			this.nextIfSuccess = multiple ? (c,i)->i: (c,i)->i.next();
 		}
 	    public ItemEnum next() {
-	        return vals[(this.ordinal()+1) % vals.length];
+	        return vals[(this.ordinal()+1)];
 	    }
-	    public ItemType getType() {
-	    	return type;
+	    public void set(BiPredicate<CatalogInfo, HeaderData> getter, SaverFunction saver) {
+	    	this.getter = getter;
+	    	this.saver = saver;
+	    }
+	    public void setNextIfSuccess(BiFunction<CatalogInfo, ItemEnum, ItemEnum> nextIfSuccess) {
+	    	this.nextIfSuccess = nextIfSuccess;
 	    }
 	}
-	
-	private class CatalogInfo {
-		/**
-		 * The name of the archive.
-		 */
-		private String arcName;
+
+	private void setItems() {
 		
-		private Class<?> clazz;		
+		SaverFunction propertiesSaver = (c,f)->save(c, f, c.properties);
+		SaverFunction environmentSaver = (c,f)->save(c, f, c.env);
+		SaverFunction javaSaver = (c,f)->decompile(new File(c.arcName), f);
 		
-		public Throwable blockingThrowable;
-		public Throwable throwableToShow;
+		ItemEnum.THROWABLE.set((c,h)->getBlockingThrowable(c,h), (c,f)->save(c, f, c.throwableToShow));
+		ItemEnum.THROWABLE.setNextIfSuccess((c,i)->ItemEnum.FINISH);
 		
-		public ItemEnum itemToShow; 
-		public ItemEnum nextItemToShow = ItemEnum.JAVA_FILE; 
+		ItemEnum.JAVA_FILE.set((c,h) -> getJavaFile(new File(c.arcName), h), javaSaver);
+		ItemEnum.PROPERTIES_DIR.set((c,h) -> getVariables(c, h, "properties", c.properties, c.propertiesKeys, "property"), propertiesSaver);
+		ItemEnum.PROPERTIES_FILE.set((c,h) -> getFile(h, "properties.property", c.properties.size()), propertiesSaver);
+		ItemEnum.ENVIRONMENT_DIR.set((c,h)->getVariables(c,h,"environment",c.env, c.envKeys, "env"), environmentSaver);
+		// ItemEnum.HELP_FILE.set((c,h)->getHelpFile(c,h), sameOnSuccess, helpFileSaver);
+		ItemEnum.ENVIRONMENT_FILE.set((c,h)-> getFile(h, "environment.env", c.env.size()), environmentSaver);
+		ItemEnum.PACKAGE.set((c,h)->getPackage(c,h), javaSaver);
+		ItemEnum.CLASS_ELEMENTS.set((c,h)->classToDirs(c, h), javaSaver);
+		// ItemEnum.FINISH.set(null,null,null);
+	}
+
+	static class CatalogInfo extends CatalogBase {
 		
+		Class<?> clazz;		
+
 		private int constructor;
 		private int method;
 		private int interfaze;
@@ -121,167 +135,57 @@ public class Decompiler extends WCXPluginAdapter {
 		private Map<String, String> env = System.getenv();
 		private Iterator<String> envKeys = env.keySet().iterator();
 	}
+	
+	protected void onOpenArchive(CatalogInfo catalogInfo) throws Exception {
+		ByteClassLoader loader = new ByteClassLoader();
+        Path path = Paths.get(catalogInfo.arcName);
+		Class<?> clazz = loader.defineClass(null, Files.readAllBytes(path));
+		catalogInfo.clazz = clazz;
+		catalogInfo.nextItemToShow = ItemEnum.JAVA_FILE;
+	}
 
-	@Override
-	public Object openArchive(OpenArchiveData archiveData) {
-		if (log.isDebugEnabled()) {
-			log.debug(this.getClass().getName() + ".openArchive(archiveData)");
+	private boolean getBlockingThrowable(CatalogInfo catalogInfo, HeaderData headerData) {
+		if (catalogInfo.blockingThrowable == null) {
+			return false;
 		}
-		Path path = Paths.get(archiveData.getArcName());
-		CatalogInfo catalogInfo = new CatalogInfo();
-		try {
-			ByteClassLoader loader = new ByteClassLoader();
-			Class<?> clazz = loader.defineClass(null, Files.readAllBytes(path));
-			catalogInfo.clazz = clazz;
-		} catch (Throwable e) {
-			catalogInfo.blockingThrowable = e;
+		Throwable t = catalogInfo.blockingThrowable;
+		String s;
+		if (t.getMessage().startsWith("Prohibited package")) {
+			s = "reading classes from package java is not allowed.exception";
+		} else {
+			s = t.getMessage() + ".exception";
 		}
-		
-		catalogInfo.arcName = archiveData.getArcName();			
-		
-		return catalogInfo;
+		headerData.setFileName(s);
+		headerData.setUnpSize(s.length());
+		catalogInfo.throwableToShow = t;
+		return true;
 	}
 	
-	@Override
-	public int closeArchive(Object archiveData) {
-		if (log.isDebugEnabled()) {
-			log.debug(this.getClass().getName() + ".closeArchive(archiveData)");
-		}
-		return SUCCESS;
-	}
-
-	@Override
-	public int processFile(Object archiveData, int operation, String destPath, String destName) {
-		if (log.isDebugEnabled()) {
-			log.debug(this.getClass().getName() + ".processFile(archiveData, operation=["+operation+"], destPath=["+destPath+"];destName=["+destName+"]");
-		}
-		CatalogInfo catalogInfo = (CatalogInfo) archiveData;
-		try {
-			if (operation == PK_EXTRACT) {
-				String fullDestName = (destPath==null?"":destPath) + destName;
-				if (log.isDebugEnabled()) {
-					log.debug(this.getClass().getName() + ".processFile() EXTRACT from:[" + catalogInfo.arcName + "] to: [" + fullDestName + "]");
-				}
-				if (catalogInfo.itemToShow == ItemEnum.THROWABLE) {
-					return save(catalogInfo, new File(fullDestName), catalogInfo.throwableToShow, false);
-				}
-				if (catalogInfo.itemToShow.getType() == ItemType.PROPERTIES) {
-					return save(catalogInfo, new File(fullDestName), catalogInfo.properties, false);
-				}
-				if (catalogInfo.itemToShow.getType() == ItemType.ENVIRONMENT) {
-					return save(catalogInfo, new File(fullDestName), catalogInfo.env, false);
-				}
-				return decompile(new File(catalogInfo.arcName), new File(fullDestName), false);
-			} else if (operation == PK_TEST) {
-				if (log.isDebugEnabled()) {
-					log.debug(this.getClass().getName() + ".processFile() TEST " + (destPath==null?"":destPath) + destName);
-				}
-				// return checkFile(new File(fullOriginName), headerData.getFileCRC());
-			} else if (operation == PK_SKIP) {
-				if (log.isDebugEnabled()) {
-					log.debug(this.getClass().getName() + ".processFile() SKIP " + (destPath==null?"":destPath) + destName);
-				}
-			}
-		} catch (RuntimeException e) {
-			log.error(e.getMessage(), e);
-		}
-		return SUCCESS;
-	}
-
-	@Override
-	public int readHeader(Object archiveData, HeaderData headerData) {
-		CatalogInfo catalogInfo = (CatalogInfo) archiveData;
-		try {
-			catalogInfo.itemToShow = catalogInfo.nextItemToShow;
-			if (log.isDebugEnabled()) log.debug(this.getClass().getName() + ".readHeader(archiveData, headerData): " + catalogInfo.itemToShow);
-			int result = doSwitch(catalogInfo, headerData, catalogInfo.itemToShow);
-			if (log.isDebugEnabled()) log.debug(".readHeader: " + (result == SUCCESS ? "SUCCESS " : "FAIL ") + catalogInfo.itemToShow);
-			return result;			
-		} catch (Throwable t) {
-			String s = "showing " + catalogInfo.itemToShow; 
-			log.error(s, t);
-			headerData.setFileName(s  + ".exception");
-			headerData.setUnpSize(s.length());
-			catalogInfo.nextItemToShow = catalogInfo.itemToShow.next();
-			catalogInfo.throwableToShow = t;
-			catalogInfo.itemToShow = ItemEnum.THROWABLE;
-			return SUCCESS;
-		}
+	private boolean getJavaFile(File f, HeaderData h) {
+		h.setFileName(f.getName().substring(0, f.getName().length()-".class".length())+".java" );
+		h.setUnpSize(f.length());
+		return true;
 	}
 	
-	private int doSwitch(CatalogInfo catalogInfo, HeaderData headerData, ItemEnum item) {
-		File f = new File(catalogInfo.arcName);
-		switch(item) {
-		case JAVA_FILE:
-			headerData.setFileName(f.getName().substring(0,f.getName().length()-".class".length())+".java" );
-			headerData.setUnpSize(f.length());
-			catalogInfo.nextItemToShow = item.next();
-			return SUCCESS;
-		case PROPERTIES_DIR:
-			if (getProperty(catalogInfo, headerData, "properties")) {
-				return SUCCESS;
-			} else {
-				catalogInfo.itemToShow = item.next();
-				// do not break, let it continue to next case					
-			}
-		case PROPERTIES_FILE:
-			headerData.setFileName("properties.property");
-			headerData.setUnpSize(catalogInfo.properties.size());
-			catalogInfo.nextItemToShow = catalogInfo.itemToShow.next();
-			return SUCCESS;
-		case ENVIRONMENT_DIR:
-			if (getEnv(catalogInfo, headerData, "environment")) {
-				return SUCCESS;
-			} else {
-				catalogInfo.itemToShow = item.next();
-				// do not break, let it continue to next case					
-			}
-		case ENVIRONMENT_FILE:
-			headerData.setFileName("environment.env");
-			headerData.setUnpSize(catalogInfo.env.size());
-			catalogInfo.nextItemToShow = catalogInfo.itemToShow.next();
-			return SUCCESS;
-		case THROWABLE:
-			if (catalogInfo.blockingThrowable != null) {
-				Throwable t = catalogInfo.blockingThrowable;
-				String s;
-				if (t.getMessage().startsWith("Prohibited package")) {
-					s = "reading classes from package java is not allowed.exception";
-				} else {
-					s = t.getMessage() + ".exception";
-				}
-				headerData.setFileName(s);
-				headerData.setUnpSize(s.length());
-				catalogInfo.throwableToShow = catalogInfo.blockingThrowable;
-				catalogInfo.nextItemToShow = ItemEnum.FINISH; // skip rest of cases
-				return SUCCESS;
-			} else {
-				catalogInfo.itemToShow = item.next();
-				// do not break, let it continue to next case					
-			}
-		case PACKAGE:
-			Class<?> clazz = catalogInfo.clazz;
-			// headerData.setFileName(clazz.getPackage() + ".package");
-	        int index = clazz.getName().lastIndexOf(".");
-	        if (index == -1) {
-				headerData.setFileName("this class has no package defined.package");
-	        } else {
-		        String packaje = clazz.getName().substring(0,index);
-				headerData.setUnpSize(packaje.length());		        
-				headerData.setFileName(packaje + ".package");
-	        }
-			catalogInfo.nextItemToShow = catalogInfo.itemToShow.next();
-			return SUCCESS;
-		case CLASS_ELEMENTS:
-			if (classToDirs(catalogInfo, headerData)) {
-				return SUCCESS;
-			} else {
-				catalogInfo.itemToShow = item.next();
-				// do not break, let it continue to next case					
-			}
-		default:
-			return E_END_ARCHIVE;
+	private boolean getFile(HeaderData h, String fileName, long unpSize) {
+		h.setFileName(fileName);
+		h.setUnpSize(unpSize);
+		return true;
+	}
+
+	private boolean getPackage(CatalogInfo catalogInfo, HeaderData headerData) {
+		Class<?> clazz = catalogInfo.clazz;
+		// headerData.setFileName(clazz.getPackage() + ".package");
+		int index = clazz.getName().lastIndexOf(".");
+		if (index == -1) {
+			headerData.setFileName("this class has no package defined.package");
+		} else {
+		    String packaje = clazz.getName().substring(0,index);
+			headerData.setUnpSize(packaje.length());		        
+			headerData.setFileName(packaje + ".package");
 		}
+		catalogInfo.nextItemToShow = catalogInfo.itemToShow.next();
+		return true;
 	}	
 	
 	private boolean classToDirs(CatalogInfo catalogInfo, HeaderData headerData) {
@@ -392,14 +296,6 @@ public class Decompiler extends WCXPluginAdapter {
 		}
 	}
 	
-	private boolean getProperty(CatalogInfo catalogInfo, HeaderData headerData, String dir) {		
-		return getVariables(catalogInfo, headerData, dir, catalogInfo.properties, catalogInfo.propertiesKeys, "property");
-	}
-
-	private boolean getEnv(CatalogInfo catalogInfo, HeaderData headerData, String dir) {
-		return getVariables(catalogInfo, headerData, dir, catalogInfo.env, catalogInfo.envKeys, "env");
-	}
-	
 	private boolean getVariables(CatalogInfo catalogInfo, HeaderData headerData, String dir, Map<?,?> map, Iterator<?> iterator, String ext) {
 		headerData.setUnpSize(map.size());
 		if (iterator.hasNext()) {
@@ -413,17 +309,8 @@ public class Decompiler extends WCXPluginAdapter {
 			return false;
 		}
 	}
-
-
-	@Override
-	public int getPackerCaps() {
-		return /* PK_CAPS_HIDE | PK_CAPS_NEW | */ PK_CAPS_MULTIPLE | PK_CAPS_MEMPACK;
-	}
-
-	private int decompile(final File source, final File dest, final boolean overwrite) {
-		if (overwrite) {
-			dest.delete();
-		}
+	
+	private int decompile(final File source, final File dest) {
 		if (dest.exists()) {
 			return E_ECREATE;
 		}
@@ -434,9 +321,8 @@ public class Decompiler extends WCXPluginAdapter {
 			OutputSinkFactory mySink = new PluginSinkFactory(out);
 
 			CfrDriver driver = new CfrDriver.Builder().withOutputSink(mySink).build();
-			driver.analyse(Collections.singletonList(""+source));
-			
-	      
+			driver.analyse(Collections.singletonList(""+source));		
+
 		} catch (FileNotFoundException fnfe) {
 			return E_EOPEN;
 		} finally {
@@ -482,13 +368,13 @@ public class Decompiler extends WCXPluginAdapter {
 		}
 	};
 	
-	private int save(CatalogInfo catalogInfo, File dest, Map<?, ?> properties, boolean overwrite) {
+	private int save(CatalogInfo catalogInfo, File dest, Map<?, ?> properties) {
 		StringBuffer sb = new StringBuffer(); 
 		properties.forEach( (k,v) -> sb.append(k).append("=").append(v).append("\n\r"));
-		return save(catalogInfo, dest, sb.toString(), overwrite);
+		return save(catalogInfo, dest, sb.toString());
 	}
 
-	private int save (CatalogInfo cinfo, final File dest, Throwable t, final boolean overwrite) {
+	private int save (CatalogInfo cinfo, final File dest, Throwable t) {
 		if (log.isWarnEnabled()) {
 			log.warn("saving throwable",t);
 		}
@@ -496,13 +382,10 @@ public class Decompiler extends WCXPluginAdapter {
 		PrintWriter pw = new PrintWriter(sw);
 		t.printStackTrace(pw);
 		pw.flush();
-		return save(cinfo, dest, sw.toString(), overwrite);
+		return save(cinfo, dest, sw.toString());
 	}
 	
-	private int save (CatalogInfo cinfo, final File dest, String contents, final boolean overwrite) {
-		if (overwrite) {
-			dest.delete();
-		}
+	private int save (CatalogInfo cinfo, final File dest, String contents) {
 		if (dest.exists()) {
 			return E_ECREATE;
 		}

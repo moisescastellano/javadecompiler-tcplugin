@@ -52,9 +52,8 @@ Contact
 ----------------------
 
 If you have any comment, suggestion or problem regarding this java plugin,
-you contact me at:
+you can contact me at:
  - email: moises.castellano (at) gmail.com
- 
  - [github project issues page](https://github.com/moisescastellano/javadecompiler-tcplugin/issues)
 
 Please detail the specific version of: Java plugin interface, Total Commander and JRE that you are using.
