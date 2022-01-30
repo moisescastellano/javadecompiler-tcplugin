@@ -14,8 +14,8 @@ v1.1 - 2022-jan-30
 	- other elements (e.g. decompiled class) can still be shown in that case
 - [Troubleshooting guide](https://moisescastellano.github.io/tcmd-java-plugin/troubleshooting) linked and main problems enumerated in main README
 - Major code restructure - more legible if you are familiar with lambda expressions
-	- it now shares a common extended class (ItemsPlugin) with ThousandTypes plugin
-- JavaDecompiler is now hosted at [Github pages](https://github.com/moisescastellano/javadecompiler-tcplugin)
+	- it now shares a common extended class ([ItemsPlugin](https://github.com/moisescastellano/javadecompiler-tcplugin/blob/main/src/moi/tcplugins/decompiler/ItemsPlugin.java)) with ThousandTypes plugin
+- JavaDecompiler is now hosted at [Github pages](https://moisescastellano.github.io/javadecompiler-tcplugin/)
 - Version check (for at least tc-classloader 2.2.0) to avoid javalib problems 
 	- Refer to: [In case you have more than one Java plugin installed](https://github.com/moisescastellano/tcmd-java-plugin/blob/main/troubleshooting.md#In-case-you-have-more-than-one-Java-plugin-installed)
 - Source code is now available at [Github project](https://github.com/moisescastellano/tcmd-java-plugin)
