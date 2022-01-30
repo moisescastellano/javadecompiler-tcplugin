@@ -55,6 +55,9 @@ public class Decompiler extends ItemsPlugin {
 		private ItemEnum(boolean multiple) {
 			this.nextIfSuccess = multiple ? (c,i)->i: (c,i)->i.next();
 		}
+	    public static ItemEnum first() {
+	        return vals[0];
+	    }
 	    public ItemEnum next() {
 	        return vals[(this.ordinal()+1)];
 	    }
@@ -141,7 +144,6 @@ public class Decompiler extends ItemsPlugin {
         Path path = Paths.get(catalogInfo.arcName);
 		Class<?> clazz = loader.defineClass(null, Files.readAllBytes(path));
 		catalogInfo.clazz = clazz;
-		catalogInfo.nextItemToShow = ItemEnum.JAVA_FILE;
 	}
 
 	private boolean getBlockingThrowable(CatalogInfo catalogInfo, HeaderData headerData) {
@@ -153,7 +155,7 @@ public class Decompiler extends ItemsPlugin {
 		if (t.getMessage().startsWith("Prohibited package")) {
 			s = "reading classes from package java is not allowed.exception";
 		} else {
-			s = t.getMessage() + ".exception";
+			s = t.getMessage().replaceAll("[^a-zA-Z0-9 ]","-") + ".blocking.exception";
 		}
 		headerData.setFileName(s);
 		headerData.setUnpSize(s.length());

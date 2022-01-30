@@ -1,8 +1,6 @@
 package moi.tcplugins.decompiler;
 
 import java.io.File;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,10 +42,13 @@ public abstract class ItemsPlugin extends WCXPluginAdapter {
 		catalogInfo.arcName = archiveData.getArcName();			
 		try {
 			VersionCheck.checkPluginClassLoaderVersion(pluginClassLoaderVersion);
+			catalogInfo.nextItemToShow = ItemEnum.first();
 			onOpenArchive(catalogInfo);
 		} catch (Throwable e) {
+			/*
 			JFrame frame = new JFrame();
 			JOptionPane.showMessageDialog(frame, e.getMessage(), "Error on openArchive", JOptionPane.ERROR_MESSAGE);
+			*/
 			catalogInfo.blockingThrowable = e;
 		}
 		return catalogInfo;
@@ -78,8 +79,10 @@ public abstract class ItemsPlugin extends WCXPluginAdapter {
 		} catch (Throwable t) {
 			log.error(t.getMessage(), t);
 			try {
+				/*
 				JFrame frame = new JFrame();
 				JOptionPane.showMessageDialog(frame, t.getMessage(), "Error on processFile", JOptionPane.ERROR_MESSAGE);
+				*/
 				catalogInfo.throwableToShow = t;
 				return ItemEnum.THROWABLE.saver.apply(catalogInfo, new File(fullDestName));
 			} catch (Throwable t2) {
@@ -110,9 +113,14 @@ public abstract class ItemsPlugin extends WCXPluginAdapter {
 			return SUCCESS;
 		} catch (Throwable t) {
 			if (log.isErrorEnabled()) log.error(t.getMessage(), t);
-			headerData.setFileName(t.getMessage() + ".exception");
-			headerData.setUnpSize(t.getMessage().length());
-			catalogInfo.nextItemToShow = catalogInfo.itemToShow.next();
+			String msg = t.getMessage().replaceAll("[^a-zA-Z0-9 ]","-");
+			headerData.setFileName(msg + ".exception");
+			headerData.setUnpSize(msg.length());
+			if (catalogInfo.itemToShow == null) {
+				catalogInfo.nextItemToShow = ItemEnum.FINISH;
+			} else {
+				catalogInfo.nextItemToShow = catalogInfo.itemToShow.next();
+			}
 			catalogInfo.throwableToShow = t;
 			catalogInfo.itemToShow = ItemEnum.THROWABLE;
 			if (log.isDebugEnabled()) log.debug(".readHeader: SUCCESS after throwable");
