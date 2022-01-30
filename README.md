@@ -24,39 +24,46 @@ Download and resources
 - JavaDecompiler [Github project](https://github.com/moisescastellano/javadecompiler-tcplugin)
 - [Thread for discussing this plugin](https://www.ghisler.ch/board/viewtopic.php?t=75793) at the TC forum
 - This is a work in progress, you can help with [things to do](https://moisescastellano.github.io/javadecompiler-tcplugin/to-do)
+- History of [changes](./changes.md)
 
-Java plugin - JRE related issues
-----------------------
-JavaDecompiler is written in Java, so you need to have installed a [Java Runtime Environment (JRE)](https://www.java.com/en/download/manual.jsp).
-Because it uses lambda expressions, it needs **at least Java 8**.
 
-This plugin is based on the [Java plugin interface](https://moisescastellano.github.io/tcmd-java-plugin).
+[Troubleshooting guide](https://moisescastellano.github.io/tcmd-java-plugin/troubleshooting)
+-----------------------------------
 
-Note 1: if you get a _**Java Runtime Environment is not installed on this Computer**_ error, and you have it installed, check the [response to this issue](https://github.com/moisescastellano/javadecompiler-tcplugin/issues/1). In short:
-add these 2 properties to the [JVM] section in the _tc_javaplugin.ini_  file, changing the paths to your JRE install dir:
-```
-JVM_DLL=c:\Program Files\Java\jre1.8.0_311\bin\server\jvm.dll
-JVM_HOME=c:\Program Files\Java\jre1.8.0_311
-```
+This interface and all derived plugins are written in Java, so you need to have installed a [Java Runtime Environment (JRE)](https://www.java.com/en/download/manual.jsp). The Java plugin interface and derived plugins were tested on **Oracle (Sun) JRE 1.8**  (jre-8u311-windows-x64.exe).
 
-Note 2: [**OpenJDK versions have been reported to fail**](https://github.com/moisescastellano/tcmd-java-plugin/issues/2) when the plugin tries to start the JVM. By now, recommendation is to install an Oracle (Sun) JDK/JRE version. Java plugin interface and derived plugins like [JavaDecompiler](https://moisescastellano.github.io/javadecompiler-tcplugin/) and [DiskDirCrc](https://moisescastellano.github.io/diskdircrc-tcplugin/) have been tested on **Oracle (Sun) JRE 1.8**  (jre-8u311-windows-x64.exe).
+In case you have any of the following issues, refer to the [Troubleshooting guide](https://moisescastellano.github.io/tcmd-java-plugin/troubleshooting)
+- In case you have more than one Java plugin installed
+- Be sure you use the same (32/64) platform for JVM and TC
+- In case you have both TCx64 and TCx32 installed
+- Error *Java Runtime Environment is not installed on this Computer*
+- Error *LoadLibrary Failed*
+- Error *Starting Java Virtual Machine failed*
+- Error *Class not found class='tcclassloader/PluginClassLoader'*
+- Error *Initialization failed in class...*
+- Error *Exception in class 'tcclassloader/PluginClassLoader'*
+- Error *Access violation at address...*
+- Error *Crash in plugin ... Access violation at address...*]
+
+For other issues you can open a project issue or contact me - see next paragraphs.
 
 Issues and things to-do
 ----------------------
 This is a work in progress. **Help wanted!** - in particular with Visual C++ issues.
- - Refer to [things to do](https://github.com/moisescastellano/tcmd-java-plugin/blob/main/to-do.md) for work in progress.
+ - Refer to [things to do for JavaDecompiler plugin](https://github.com/moisescastellano/javadecompiler-tcplugin/blob/main/to-do.md).
+ - Also refer to [things to do for java plugin interface](https://github.com/moisescastellano/tcmd-java-plugin/blob/main/to-do.md).
  - Check also the [issues page](https://github.com/moisescastellano/javadecompiler-tcplugin/issues).
  - Java Plugin Interface's [issues page](https://github.com/moisescastellano/tcmd-java-plugin/issues).
 
 Contact
 ----------------------
-
 If you have any comment, suggestion or problem regarding this java plugin,
 you can contact me at:
+ - [Thread for discussing this plugin](https://www.ghisler.ch/board/viewtopic.php?t=75793) at the TC forum
+ - [Github project issues page](https://github.com/moisescastellano/javadecompiler-tcplugin/issues)
  - email: moises.castellano (at) gmail.com
- - [github project issues page](https://github.com/moisescastellano/javadecompiler-tcplugin/issues)
 
-Please detail the specific version of: Java plugin interface, Total Commander and JRE that you are using.
+Please detail the specific (including if 32 or 64-bit) version of: Java plugin interface, Total Commander and JRE that you are using.
 
 Disclaimer
 ----------------------
@@ -65,7 +72,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” 
 
 License
 ----------------------
-Licensed under under the GNU General Public License v3.0, a strong copyleft license:
+Licensed under the GNU General Public License v3.0, a strong copyleft license:
 https://github.com/moisescastellano/tcmd-java-plugin/blob/main/LICENSE
 
 

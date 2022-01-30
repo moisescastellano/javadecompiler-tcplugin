@@ -4,17 +4,17 @@ JavaDecompiler plugin - Things To do
 
 This is a work in progress. **Help wanted!** - in particular with Visual C++ issues. See contact below.
 
-Check also [this project's issues page](https://github.com/moisescastellano/javadecompiler-tcplugin/issues) and Java Plugin Interface's [issues page](https://github.com/moisescastellano/tcmd-java-plugin/issues).
+Main issues are found in Java Plugin Interface's [issues page](https://github.com/moisescastellano/tcmd-java-plugin/issues).
 
-Priority issues
----------
-There are now a couple (closely related) issues reported regarding this Java plugin interface, which are difficult to solve for myself as they are Visual C++ related, which I am not familiar with.
+Check also [this project's issues page](https://github.com/moisescastellano/javadecompiler-tcplugin/issues).
 
-For some JDK/JRE versions the plugin has a hard time to find or load the Java Virtual Machine.
+Solutions for most problems are found in the [Troubleshooting guide](https://moisescastellano.github.io/tcmd-java-plugin/troubleshooting)
 
-[The first one](https://github.com/moisescastellano/javadecompiler-tcplugin/issues/1) is the error "**JRE is not installed**" when finding the library, that the plugin searchs in two ways described in the issue.
+For some of these issues, changes in code have to be done:
 
-[The second one](https://github.com/moisescastellano/tcmd-java-plugin/issues/2) is plugin complains "**LoadLibrary Failed / Starting Java Virtual Machine failed**". Specific JREs failing are reported in the issue.
+  - error ["**JRE is not installed**"](https://github.com/moisescastellano/javadecompiler-tcplugin/issues/1) : when finding the library, that the plugin searchs in two ways described in the issue.
+
+  - plugin complains ["**LoadLibrary Failed / Starting Java Virtual Machine failed**"](https://github.com/moisescastellano/tcmd-java-plugin/issues/2) : specific JREs failing are reported in the issue.
 
 If you are giving a try to the Java plugin interface or any of its plugins, **some working (Oracle JREs) versions** are: jre1.8.0_211, jre-8u311-windows-x64
 
@@ -26,8 +26,8 @@ Dates are shown incorrectly (e.g. year shown as 2098). I think this is an error 
 
 Some classes cannot be navigated
 ----------
-Classes in package java.* cannot be navigated, because the SecurityManager forbids so. This maybe could be avoided somehow.
-For other classes getting constructors and other members throws exception. Maybe cannot be avoided, to be reviewed.
+  - Classes in package java.* cannot be navigated, because the SecurityManager forbids so. This maybe could be avoided somehow.
+  - For other classes, in particular classes extending other user (non-JRE) classes, getting constructors and other members throws exception. Maybe cannot be avoided, to be reviewed.
 
 Improvements
 ----------
@@ -37,7 +37,10 @@ Contact
 ----------
 If you want to help with the things above, or you have any comment, suggestion or problem regarding this java plugin,
 you contact me at:
- - email: moises.castellano (at) gmail.com
+
+ - [Thread for discussing this plugin](https://www.ghisler.ch/board/viewtopic.php?t=75793) at the TC forum
  - [Github project issues page](https://github.com/moisescastellano/javadecompiler-tcplugin/issues)
-Please specify the java plugin and the JRE versions you are using.
+ - email: moises.castellano (at) gmail.com
+
+Please detail the specific (including if 32 or 64-bit) version of: Java plugin interface, Total Commander and JRE that you are using.
 
